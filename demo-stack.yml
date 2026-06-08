@@ -1,0 +1,50 @@
+# demo-stack.yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Demo resources for SageMaker + Greengrass pipeline
+
+Resources:
+  # Creates an S3 bucket for storing datasets and models (change the name if needed)
+  DemoS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: demo-bucket
+
+  # IAM role for SageMaker to access S3 and training resources
+  SageMakerExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - sagemaker.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+
+  # IAM role for Greengrass/IoT device access to S3 and IoT Core
+  GreengrassDeviceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - iot.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSIoTFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+
+  # IoT Thing representing a Greengrass device (can be your dev PC/VM)
+  DemoIoTThing:
+    Type: AWS::IoT::Thing
+    Properties:
+      ThingName: demo-greengrass-core
